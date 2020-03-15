@@ -10,12 +10,12 @@ const MSP_ID = 'Org1MSP'
 const PEER_NAME = 'peer0.org1.example.com'
 const CHANNEL_NAME = 'mychannel'
 
-const CHAINCODE_ID = 'approve'
+const CHAINCODE_ID = 'erc20refactoring'
 const CHAINCODE_EVENT = 'approvalEvent'
 
 const CRYPTO_CONTENT = {
-    privateKey: '/Users/thkim/.fabric-vscode/environments/1 Org Local Fabric/wallets/org1/org1Admin/keystore/ab8c1c049d49aa5214e48887bcf6f8e27aceaa457e8c29d50a5633b034bb54b4_sk',
-    signedCert: '/Users/thkim/.fabric-vscode/environments/1 Org Local Fabric/wallets/Org1/org1Admin/signcerts/cert.pem'
+    privateKey: '/Users/thkim/.fabric-vscode/environments/1 Org Local Fabric/wallets/org1/admin/keystore/8fc24378e913611c32652cce169ea0095c4899b253e55b824bfdb276068fdb81_sk',
+    signedCert: '/Users/thkim/.fabric-vscode/environments/1 Org Local Fabric/wallets/Org1/admin/signcerts/cert.pem'
   }
 
 async function subscribeEvent() {
