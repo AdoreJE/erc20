@@ -256,12 +256,89 @@ func (cc *Controller) DecreaseAllowance(stub shim.ChaincodeStubInterface, params
 	return shim.Success([]byte("decreaseAllowance success"))
 }
 
-// Mint is invoke function
+// Mint is invoke function that creates amount tokens and assign them to address, increasing the total supply
+// params - tokenName, recipient's address, amount
 func (cc *Controller) Mint(stub shim.ChaincodeStubInterface, params []string) sc.Response {
-	return shim.Success((nil))
+	// check the number of params is 3
+	if len(params) != 3 {
+		return shim.Error("incorrect number of params")
+	}
+
+	tokenName, address, mintAmount := params[0], params[1], params[2]
+	// amount must be positive
+	mintAmountInt, err := util.ConvertToPositive("mintAmount", mintAmount)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// increase TotalSupply
+	erc20Metadata, err := repository.GetERC20Metadata(stub, tokenName)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	resultTotalSupply := *erc20Metadata.GetTotalSupply() + uint64(*mintAmountInt)
+	err = repository.SaveERC20Metadata(stub, *erc20Metadata.GetName(), *erc20Metadata.GetSymbol(), *erc20Metadata.GetOwner(), resultTotalSupply)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// increase owner balance
+	curBalance, err := repository.GetBalance(stub, address, true)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	resultBalance := *curBalance + *mintAmountInt
+	err = repository.SaveBalance(stub, address, strconv.Itoa(resultBalance))
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// emit transferEvent
+	err = repository.EmitTransferEvent(stub, "admin", address, *mintAmountInt)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success([]byte("Mint success"))
 }
 
 // Burn is invoke function
+// params - tokenName, recipient's address, amount
 func (cc *Controller) Burn(stub shim.ChaincodeStubInterface, params []string) sc.Response {
+	// check the number of paramenters
+	if len(params) != 3 {
+		return shim.Error("incorrect number of parameters")
+	}
+	tokenName, address, burnAmount := params[0], params[1], params[2]
+
+	// amount is integer & positive
+	burnAmountInt, err := util.ConvertToPositive("burnAmount", burnAmount)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// decrease total supply
+	erc20Metadata, err := repository.GetERC20Metadata(stub, tokenName)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	resultTotalSupply := int(*erc20Metadata.GetTotalSupply()) - *burnAmountInt
+	if resultTotalSupply < 0 {
+		return shim.Error("totalSupply is not negative")
+	}
+	err = repository.SaveERC20Metadata(stub, *erc20Metadata.GetName(), *erc20Metadata.GetSymbol(), *erc20Metadata.GetOwner(), uint64(resultTotalSupply))
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// decrease owner balance
+	curBalance, err := repository.GetBalance(stub, address, true)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	resultBalance := *curBalance - *burnAmountInt
+	err = repository.SaveBalance(stub, address, strconv.Itoa(resultBalance))
+	if err != nil {
+		return shim.Error(err.Error())
+	}
 	return shim.Success((nil))
 }

@@ -7,6 +7,11 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
+const (
+	TransferEventKey = "transferEvent"
+	ApprovalEventKey = "approvalEvent"
+)
+
 func EmitTransferEvent(stub shim.ChaincodeStubInterface, sender, spender string, amount int) error {
 	// emit transfer event
 	// transferEvent := TransferEvent{Sender: callerAddress, Recipient: recipientAddress, Amount: transferAmountInt}
